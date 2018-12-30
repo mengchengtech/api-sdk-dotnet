@@ -55,10 +55,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="OpenApi\Sdk\ApiGatewayError.cs" />
     <Compile Include="OpenApi\Sdk\HttpConsts.cs" />
     <Compile Include="OpenApi\Sdk\HttpMethod.cs" />
-    <Compile Include="OpenApi\Sdk\MctechException.cs" />
-    <Compile Include="OpenApi\Sdk\MctechOpenApiException.cs" />
+    <Compile Include="OpenApi\Sdk\MCTechException.cs" />
+    <Compile Include="OpenApi\Sdk\MCTechOpenApiException.cs" />
+    <Compile Include="OpenApi\Sdk\MCTechOpenApiRequestException.cs" />
     <Compile Include="OpenApi\Sdk\OpenApiClient.cs" />
     <Compile Include="OpenApi\Sdk\SignatureOption.cs" />
     <Compile Include="OpenApi\Sdk\SignUtility.cs" />

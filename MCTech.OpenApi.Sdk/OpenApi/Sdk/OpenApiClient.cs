@@ -25,11 +25,11 @@ namespace MCTech.OpenApi.Sdk
         {
             this._baseUri = new Uri(baseUri);
             if (string.IsNullOrEmpty(accessId)) {
-                throw new MctechOpenApiException("accessId不能为null或empty");
+                throw new MCTechOpenApiException("accessId不能为null或empty");
             }
             if (string.IsNullOrEmpty(secretKey))
             {
-                throw new MctechOpenApiException("secret不能为null或empty");
+                throw new MCTechOpenApiException("secret不能为null或empty");
             }
 
             this._accessId = accessId;
@@ -87,9 +87,16 @@ namespace MCTech.OpenApi.Sdk
             {
                 streamBody.CopyTo(webReq.GetRequestStream());
             }
-            HttpWebResponse response = webReq.GetResponse() as HttpWebResponse;
-            RequestResult result = new RequestResult(response);
-            return result;
+            try 
+            {
+                HttpWebResponse response = webReq.GetResponse() as HttpWebResponse;
+                return new RequestResult(response);
+            }
+            catch (WebException ex)
+            {
+                HttpWebResponse response = ex.Response as HttpWebResponse;
+                return new RequestResult(response);
+            }
         }
 
         private HttpWebRequest createRequest(string pathAndQuery, string method)

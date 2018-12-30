@@ -18,7 +18,7 @@ namespace MCTech.OpenApi.Sdk
         {
             if (method == HttpMethod.Post || method == HttpMethod.Put || method == HttpMethod.Patch) {
                 if (string.IsNullOrWhiteSpace(contentType)) {
-                    throw new MctechOpenApiException("http请求缺少'content-type'头。请求方式为[" + method + "]时，需要在RpcInvoker的headers属性上设置'content-type'");
+                    throw new MCTechOpenApiException("http请求缺少'content-type'头。请求方式为[" + method + "]时，需要在RpcInvoker的headers属性上设置'content-type'");
                 }
             }
             
