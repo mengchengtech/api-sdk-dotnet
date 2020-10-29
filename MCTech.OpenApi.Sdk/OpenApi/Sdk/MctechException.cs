@@ -5,9 +5,9 @@ using System.Text;
 
 namespace MCTech.OpenApi.Sdk
 {
-    public class MctechException : ApplicationException
+    public class MCTechException : ApplicationException
     {
-        public MctechException(string message)
+        public MCTechException(string message)
             : base(message)
         {
 

@@ -1,5 +1,6 @@
 using Newtonsoft.Json;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -105,15 +106,31 @@ namespace MCTech.OpenApi.Sdk
 
         internal RequestResult(HttpWebResponse response)
         {
-            Initialize(response);
-        }
-
-        private void Initialize(HttpWebResponse response)
-        {
             _response = response;
             _contentType = response.ContentType;
             this.Encoding = Encoding.UTF8;
             this.StatusCode = response.StatusCode;
+
+            if (this.StatusCode >= HttpStatusCode.BadRequest)
+            {
+                ApiGatewayError error = CreateError(response);
+                throw new MCTechOpenApiRequestException(error.getMessage(), error);
+            }
+        }
+
+        private static ApiGatewayError CreateError(HttpWebResponse response) {
+            XmlDocument document = new XmlDocument();
+            document.Load(response.GetResponseStream());
+            XmlNodeList items = document.DocumentElement.ChildNodes;
+            Hashtable map = new Hashtable();
+            foreach (XmlElement item in items) 
+            {
+                string name = item.Name;
+                string value = item.InnerText;
+                map.Add(name, value);
+            }
+
+            return new ApiGatewayError(map);
         }
 
         void IDisposable.Dispose()
