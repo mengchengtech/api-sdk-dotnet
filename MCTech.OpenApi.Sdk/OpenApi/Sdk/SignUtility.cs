@@ -15,11 +15,11 @@ namespace MCTech.OpenApi.Sdk
         public static string BuildCanonicalString(SignatureOption option)
         {
             List<string> itemsToSign = new List<string>();
-            itemsToSign.Add(option.Method);            
+            itemsToSign.Add(option.Method);
             itemsToSign.Add(option.ContentType);
             //itemsToSign.Add(option.ContentMd5);
             itemsToSign.Add(option.Date.ToUniversalTime().ToString("r"));
-            
+
             var headers = option.Headers;
             List<string> keys = headers.AllKeys.Where(key => key.StartsWith(OpenApiPrefix, StringComparison.InvariantCultureIgnoreCase))
                 .OrderBy(key => key, StringComparer.InvariantCulture)
@@ -28,7 +28,7 @@ namespace MCTech.OpenApi.Sdk
             foreach(string key in keys) {
                 itemsToSign.Add(key + ":" + headers[key]);
             }
-            
+
             // Add canonical resource
             string canonicalizedResource = BuildCanonicalizedResource(option.resourceUri);
             itemsToSign.Add(canonicalizedResource);
@@ -57,7 +57,7 @@ namespace MCTech.OpenApi.Sdk
                 string paramValue = query[paramName];
                 if (!string.IsNullOrEmpty(paramValue))
                 {
-                    builder.Append("=").Append(paramValue);
+                    builder.Append("=").Append(HttpUtility.UrlEncode(paramValue).ToUpper());
                 }
 
                 separator = '&';
