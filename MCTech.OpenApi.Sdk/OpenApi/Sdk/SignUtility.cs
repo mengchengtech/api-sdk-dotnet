@@ -57,7 +57,7 @@ namespace MCTech.OpenApi.Sdk
                 string paramValue = query[paramName];
                 if (!string.IsNullOrEmpty(paramValue))
                 {
-                    builder.Append("=").Append(HttpUtility.UrlEncode(paramValue).ToUpper());
+                    builder.Append("=").Append(HttpUtility.UrlEncode(paramValue));
                 }
 
                 separator = '&';
