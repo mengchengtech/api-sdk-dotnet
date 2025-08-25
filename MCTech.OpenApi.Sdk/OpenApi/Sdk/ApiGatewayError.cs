@@ -6,7 +6,8 @@ using System.Text;
 
 namespace MCTech.OpenApi.Sdk
 {
-    public class ApiGatewayError {
+  public class ApiGatewayError
+  {
     private const string PROP_CODE = "Code";
     private const string PROP_MESSAGE = "Message";
     private const string PROP_STRING_TO_SIGN_BYTES = "StringToSignBytes";
@@ -18,41 +19,42 @@ namespace MCTech.OpenApi.Sdk
 
     public ApiGatewayError(Hashtable map)
     {
-        this._map = map;
+      this._map = map;
     }
 
     public string getCode()
     {
-        return (string)this._map[PROP_CODE];
+      return (string)this._map[PROP_CODE];
     }
 
     public string getMessage()
     {
-        return (string)this._map[PROP_MESSAGE];
+      return (string)this._map[PROP_MESSAGE];
     }
 
     public string getStringToSignBytes()
     {
-        return (string)this._map[PROP_STRING_TO_SIGN_BYTES];
+      return (string)this._map[PROP_STRING_TO_SIGN_BYTES];
     }
 
     public string getSignatureProvided()
     {
-        return (string)this._map[PROP_SIGNATURE_PROVIDED];
+      return (string)this._map[PROP_SIGNATURE_PROVIDED];
     }
 
-    public string getStringToSign() 
+    public string getStringToSign()
     {
-        return (string)this._map[PROP_STRING_TO_SIGN];
+      return (string)this._map[PROP_STRING_TO_SIGN];
     }
 
-    public string getAccessKeyId() 
+    public string getAccessKeyId()
     {
-        return (string)this._map[PROP_ACCESS_KEY_ID];
+      return (string)this._map[PROP_ACCESS_KEY_ID];
     }
 
-    public string getProperty(String name) {
-        return (string)this._map[name];
+    public string getProperty(String name)
+    {
+      return (string)this._map[name];
     }
-}
+  }
 }

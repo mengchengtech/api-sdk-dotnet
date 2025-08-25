@@ -6,14 +6,14 @@ using System.Threading.Tasks;
 
 namespace MCTech.OpenApi.Sdk
 {
-    public class MCTechOpenApiRequestException : MCTechException
-    {
-        private readonly ApiGatewayError error;
+  public class MCTechOpenApiRequestException : MCTechException
+  {
+    private readonly ApiGatewayError error;
 
-        public MCTechOpenApiRequestException(string message, ApiGatewayError error) 
-        :
-            base(message){
-            this.error = error;
-        }
+    public MCTechOpenApiRequestException(string message, ApiGatewayError error)
+    : base(message)
+    {
+      this.error = error;
     }
+  }
 }

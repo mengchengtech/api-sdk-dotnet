@@ -5,12 +5,12 @@ using System.Text;
 
 namespace MCTech.OpenApi.Sdk
 {
-    public class MCTechException : ApplicationException
+  public class MCTechException : ApplicationException
+  {
+    public MCTechException(string message)
+        : base(message)
     {
-        public MCTechException(string message)
-            : base(message)
-        {
 
-        }
     }
+  }
 }
