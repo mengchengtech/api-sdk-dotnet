@@ -15,17 +15,17 @@ namespace MCTech.OpenApi.Sdk
   {
     private HttpResponseMessage? _response;
     /// <summary>
-    /// »ñÈ¡»òÉèÖÃ·µ»ØµÄÏìÓ¦ÄÚÈİµÄ±àÂë
+    /// è·å–æˆ–è®¾ç½®è¿”å›çš„å“åº”å†…å®¹çš„ç¼–ç 
     /// </summary>
     public Encoding Encoding { get; private set; }
 
     /// <summary>
-    /// ·µ»Ø½á¹û×´Ì¬Âë
+    /// è¿”å›ç»“æœçŠ¶æ€ç 
     /// </summary>
     public HttpStatusCode StatusCode { get; private set; }
 
     /// <summary>
-    /// ÒÔ×Ö·û´®·½Ê½»ñÈ¡·µ»ØµÄÎÄ±¾ÄÚÈİ
+    /// ä»¥å­—ç¬¦ä¸²æ–¹å¼è·å–è¿”å›çš„æ–‡æœ¬å†…å®¹
     /// </summary>
     /// <returns></returns>
     public string GetContent()
@@ -39,7 +39,7 @@ namespace MCTech.OpenApi.Sdk
     }
 
     /// <summary>
-    /// ÒÔXml·½Ê½»ñÈ¡·µ»ØµÄÎÄ±¾ÄÚÈİ
+    /// ä»¥Xmlæ–¹å¼è·å–è¿”å›çš„æ–‡æœ¬å†…å®¹
     /// </summary>
     /// <returns></returns>
     public XmlDocument GetXmlDocument()
@@ -53,9 +53,9 @@ namespace MCTech.OpenApi.Sdk
 
 
     /// <summary>
-    /// »ñÈ¡Xml·½Ê½±íÊ¾µÄÊµÌå¶ÔÏó¡£Ê¹ÓÃXmlSerializer·´ĞòÁĞ»¯
+    /// è·å–Xmlæ–¹å¼è¡¨ç¤ºçš„å®ä½“å¯¹è±¡ã€‚ä½¿ç”¨XmlSerializerååºåˆ—åŒ–
     /// </summary>
-    /// <param name="targetType">ĞèÒª·µĞòÁĞ»¯µÄ¶ÔÏóµÄC#Àà</param>
+    /// <param name="targetType">éœ€è¦è¿”åºåˆ—åŒ–çš„å¯¹è±¡çš„C#ç±»</param>
     /// <returns></returns>
     public object? GetXmlObject(Type targetType)
     {
@@ -66,9 +66,9 @@ namespace MCTech.OpenApi.Sdk
     }
 
     /// <summary>
-    /// »ñÈ¡Json·½Ê½±íÊ¾µÄÊµÌå¶ÔÏó¡£Ê¹ÓÃNewtonsoft·´ĞòÁĞ»¯
+    /// è·å–Jsonæ–¹å¼è¡¨ç¤ºçš„å®ä½“å¯¹è±¡ã€‚ä½¿ç”¨Newtonsoftååºåˆ—åŒ–
     /// </summary>
-    /// <param name="targetType">ĞèÒª·µĞòÁĞ»¯µÄ¶ÔÏóµÄC#Àà</param>
+    /// <param name="targetType">éœ€è¦è¿”åºåˆ—åŒ–çš„å¯¹è±¡çš„C#ç±»</param>
     /// <returns></returns>
     public object? GetJsonObject(Type targetType)
     {
@@ -80,7 +80,7 @@ namespace MCTech.OpenApi.Sdk
     }
 
     /// <summary>
-    /// »ñÈ¡·µ»Ø½á¹ûµÄÄÚÈİ¶ÔÏó
+    /// è·å–è¿”å›ç»“æœçš„å†…å®¹å¯¹è±¡
     /// </summary>
     /// <returns></returns>
     public HttpContent HttpContent() { return this._response!.Content; }
@@ -93,12 +93,12 @@ namespace MCTech.OpenApi.Sdk
 
       if (!response.IsSuccessStatusCode)
       {
-        ApiGatewayError error = CreateError(response);
-        throw new MCTechOpenApiRequestException(error.Message, error);
+        ApiGatewayErrorData error = CreateError(response);
+        throw new OpenApiResponseException(error.Message, error);
       }
     }
 
-    private static ApiGatewayError CreateError(HttpResponseMessage response)
+    private static ApiGatewayErrorData CreateError(HttpResponseMessage response)
     {
       XmlDocument document = new XmlDocument();
       document.Load(response.Content.ReadAsStream());
@@ -111,7 +111,7 @@ namespace MCTech.OpenApi.Sdk
         map.Add(name, value);
       }
 
-      return new ApiGatewayError(map);
+      return new ApiGatewayErrorData(map);
     }
 
     void IDisposable.Dispose()

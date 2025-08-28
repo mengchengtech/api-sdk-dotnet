@@ -6,7 +6,7 @@ using System.Text;
 
 namespace MCTech.OpenApi.Sdk
 {
-  public class ApiGatewayError
+  public class ApiGatewayErrorData
   {
     private const string PROP_CODE = "Code";
     private const string PROP_MESSAGE = "Message";
@@ -17,7 +17,7 @@ namespace MCTech.OpenApi.Sdk
 
     private readonly Hashtable _map;
 
-    public ApiGatewayError(Hashtable map)
+    public ApiGatewayErrorData(Hashtable map)
     {
       this._map = map;
     }

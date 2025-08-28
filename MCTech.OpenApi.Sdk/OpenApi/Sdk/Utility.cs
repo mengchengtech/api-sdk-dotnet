@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.WebUtilities;
 
 namespace MCTech.OpenApi.Sdk
 {
-  internal class SignUtility
+  internal static class Utility
   {
     private const string OpenApiPrefix = "x-iwop-";
 

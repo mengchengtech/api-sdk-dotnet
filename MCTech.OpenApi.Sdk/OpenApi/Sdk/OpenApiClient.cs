@@ -15,10 +15,10 @@ namespace MCTech.OpenApi.Sdk
 {
   public class OpenApiClient
   {
-    private string _accessId;
-    private string _secretKey;
-    private Uri _baseUri;
-    private HttpClient _client;
+    private readonly string _accessId;
+    private readonly string _secretKey;
+    private readonly Uri _baseUri;
+    private readonly HttpClient _client;
 
     static OpenApiClient()
     {
@@ -30,11 +30,11 @@ namespace MCTech.OpenApi.Sdk
       this._baseUri = new Uri(baseUri);
       if (string.IsNullOrEmpty(accessId))
       {
-        throw new MCTechOpenApiException("accessId不能为null或empty");
+        throw new OpenApiClientException("accessId不能为null或empty");
       }
       if (string.IsNullOrEmpty(secretKey))
       {
-        throw new MCTechOpenApiException("secret不能为null或empty");
+        throw new OpenApiClientException("secret不能为null或empty");
       }
 
       this._accessId = accessId;
@@ -123,7 +123,7 @@ namespace MCTech.OpenApi.Sdk
       request.Headers.Add(HttpRequestHeader.ContentType.ToString(), contentType);
       request.Method = method;
       SignatureOption option = new SignatureOption(request.RequestUri!, method, contentType, now);
-      string canonicalString = SignUtility.BuildCanonicalString(option);
+      string canonicalString = Utility.BuildCanonicalString(option);
       HMACSHA1 hmac = new HMACSHA1(Encoding.UTF8.GetBytes(_secretKey));
       byte[] byteText = hmac.ComputeHash(Encoding.UTF8.GetBytes(canonicalString));
       string signature = Convert.ToBase64String(byteText);
