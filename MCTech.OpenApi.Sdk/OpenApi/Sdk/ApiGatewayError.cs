@@ -22,39 +22,39 @@ namespace MCTech.OpenApi.Sdk
       this._map = map;
     }
 
-    public string getCode()
+    public string Code
     {
-      return (string)this._map[PROP_CODE];
+      get { return (string)this._map[PROP_CODE]!; }
     }
 
-    public string getMessage()
+    public string Message
     {
-      return (string)this._map[PROP_MESSAGE];
+      get { return (string)this._map[PROP_MESSAGE]!; }
     }
 
-    public string getStringToSignBytes()
+    public string? StringToSignBytes
     {
-      return (string)this._map[PROP_STRING_TO_SIGN_BYTES];
+      get { return (string?)this._map[PROP_STRING_TO_SIGN_BYTES]; }
     }
 
-    public string getSignatureProvided()
+    public string? SignatureProvided
     {
-      return (string)this._map[PROP_SIGNATURE_PROVIDED];
+      get { return (string?)this._map[PROP_SIGNATURE_PROVIDED]; }
     }
 
-    public string getStringToSign()
+    public string? StringToSign
     {
-      return (string)this._map[PROP_STRING_TO_SIGN];
+      get { return (string?)this._map[PROP_STRING_TO_SIGN]; }
     }
 
-    public string getAccessKeyId()
+    public string? AccessKeyId
     {
-      return (string)this._map[PROP_ACCESS_KEY_ID];
+      get { return (string?)this._map[PROP_ACCESS_KEY_ID]; }
     }
 
-    public string getProperty(String name)
+    public string? GetProperty(String name)
     {
-      return (string)this._map[name];
+      return (string?)this._map[name];
     }
   }
 }

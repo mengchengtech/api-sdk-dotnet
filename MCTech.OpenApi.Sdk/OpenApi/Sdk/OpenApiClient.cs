@@ -4,9 +4,12 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http.Json;
 using System.Security.Cryptography;
 using System.Text;
-using System.Web;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Threading.Tasks;
 
 namespace MCTech.OpenApi.Sdk
 {
@@ -15,6 +18,7 @@ namespace MCTech.OpenApi.Sdk
     private string _accessId;
     private string _secretKey;
     private Uri _baseUri;
+    private HttpClient _client;
 
     static OpenApiClient()
     {
@@ -35,91 +39,95 @@ namespace MCTech.OpenApi.Sdk
 
       this._accessId = accessId;
       this._secretKey = secretKey;
+      this._client = new HttpClient(new SocketsHttpHandler
+      {
+        PooledConnectionLifetime = TimeSpan.FromMinutes(5),   // 连接存活时间
+        PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2), // 空闲连接超时
+        AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
+      });
+      this._client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
+      this._client.DefaultRequestHeaders.AcceptLanguage.Add(new StringWithQualityHeaderValue("zh-CN"));
     }
 
     public RequestResult Get(string pathAndQuery)
     {
-      return SendRequest(pathAndQuery, null, HttpMethod.Get);
+      var result = Request(pathAndQuery, null, HttpMethod.Get);
+      return result.Result;
     }
 
     public RequestResult Delete(string pathAndQuery)
     {
-      return SendRequest(pathAndQuery, null, HttpMethod.Delete);
+      var result = Request(pathAndQuery, null, HttpMethod.Delete);
+      return result.Result;
     }
 
     public RequestResult Post(string pathAndQuery, string body)
     {
       byte[] data = Encoding.UTF8.GetBytes(body);
-      return SendRequest(pathAndQuery, new MemoryStream(data), HttpMethod.Post);
+      var result = Request(pathAndQuery, new MemoryStream(data), HttpMethod.Post);
+      return result.Result;
     }
 
     public RequestResult Post(string pathAndQuery, Stream streamBody)
     {
-      return SendRequest(pathAndQuery, streamBody, HttpMethod.Post);
+      var result = Request(pathAndQuery, streamBody, HttpMethod.Post);
+      return result.Result;
     }
 
     public RequestResult Put(string pathAndQuery, string body)
     {
       byte[] data = Encoding.UTF8.GetBytes(body);
-      return SendRequest(pathAndQuery, new MemoryStream(data), HttpMethod.Put);
+      var result = Request(pathAndQuery, new MemoryStream(data), HttpMethod.Put);
+      return result.Result;
     }
 
     public RequestResult Put(string pathAndQuery, Stream streamBody)
     {
-      return SendRequest(pathAndQuery, streamBody, HttpMethod.Put);
+      var result = Request(pathAndQuery, streamBody, HttpMethod.Put);
+      return result.Result;
     }
 
     public RequestResult Patch(string pathAndQuery, string body)
     {
       byte[] data = Encoding.UTF8.GetBytes(body);
-      return SendRequest(pathAndQuery, new MemoryStream(data), HttpMethod.Patch);
+      var result = Request(pathAndQuery, new MemoryStream(data), HttpMethod.Patch);
+      return result.Result;
     }
 
     public RequestResult Patch(string pathAndQuery, Stream streamBody)
     {
-      return SendRequest(pathAndQuery, streamBody, HttpMethod.Patch);
+      var result = Request(pathAndQuery, streamBody, HttpMethod.Patch);
+      return result.Result;
     }
 
-    private RequestResult SendRequest(string pathAndQuery, Stream streamBody, string method)
+    private async Task<RequestResult> Request(string pathAndQuery, Stream? streamBody, HttpMethod method)
     {
-      HttpWebRequest webReq = createRequest(pathAndQuery, method);
-      webReq.Method = method;
+      HttpRequestMessage req = CreateRequestMessage(pathAndQuery, method);
       if (streamBody != null)
       {
-        streamBody.CopyTo(webReq.GetRequestStream());
+        req.Content = new StreamContent(streamBody);
       }
-      try
-      {
-        HttpWebResponse response = webReq.GetResponse() as HttpWebResponse;
-        return new RequestResult(response);
-      }
-      catch (WebException ex)
-      {
-        HttpWebResponse response = ex.Response as HttpWebResponse;
-        return new RequestResult(response);
-      }
+      HttpResponseMessage response = await this._client.SendAsync(req);
+      return new RequestResult(response);
     }
 
-    private HttpWebRequest createRequest(string pathAndQuery, string method)
+    private HttpRequestMessage CreateRequestMessage(string pathAndQuery, HttpMethod method)
     {
       Uri apiUri = new Uri(this._baseUri, pathAndQuery);
-      HttpWebRequest request = (HttpWebRequest)WebRequest.Create(apiUri);
-      request.Date = DateTime.Now;
-      request.Accept = "application/json, application/xml";
-      request.Headers.Add("Accept-Language", "zh-CN");
-      request.ContentType = "application/json; charset=UTF-8";
-      request.KeepAlive = true;
-      request.Headers.Add(HttpRequestHeader.KeepAlive, "3000");
-      request.Method = method;
-      request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
 
-      string httpMethod = request.Method.ToUpperInvariant();
-      SignatureOption option = new SignatureOption(request.RequestUri, request.Method, request.ContentType, request.Date);
+      HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, apiUri);
+      request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+      var now = DateTimeOffset.Now;
+      request.Headers.Date = now;
+      var contentType = "application/json";
+      request.Headers.Add(HttpRequestHeader.ContentType.ToString(), contentType);
+      request.Method = method;
+      SignatureOption option = new SignatureOption(request.RequestUri!, method, contentType, now);
       string canonicalString = SignUtility.BuildCanonicalString(option);
       HMACSHA1 hmac = new HMACSHA1(Encoding.UTF8.GetBytes(_secretKey));
       byte[] byteText = hmac.ComputeHash(Encoding.UTF8.GetBytes(canonicalString));
       string signature = Convert.ToBase64String(byteText);
-      request.Headers[HttpConsts.Authorization] = "IWOP " + this._accessId + ":" + signature;
+      request.Headers.Add(HttpRequestHeader.Authorization.ToString(), "IWOP " + this._accessId + ":" + signature);
 
       return request;
     }

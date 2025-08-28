@@ -33,32 +33,19 @@ namespace ApiSample
       {
         try
         {
-          using (RequestResult result = client.Post(url, string.Format(body, offset, pageSize)))
+          using RequestResult result = client.Post(url, string.Format(body, offset, pageSize));
+          JArray jsonResult = (JArray)result.GetJsonObject(typeof(JArray))!;
+          SaveResult(jsonResult);
+          logger.Info(string.Format("{0} records received", jsonResult.Count));
+          offset += jsonResult.Count;
+          if (jsonResult.Count < pageSize)
           {
-            JArray jsonResult = (JArray)result.GetJsonObject(typeof(JArray));
-            SaveResult(jsonResult);
-            logger.Info(string.Format("{0} records received", jsonResult.Count()));
-            offset += jsonResult.Count();
-            if (jsonResult.Count() < pageSize)
-            {
-              break;
-            }
+            break;
           }
         }
         catch (Exception ex)
         {
-          logger.Info(String.Format("call api error:  {0} ", ex.Message));
-          WebException webEx = ex as WebException;
-          if (webEx != null)
-          {
-            using (HttpWebResponse resp = (HttpWebResponse)webEx.Response)
-            {
-              using (StreamReader reader = new StreamReader(resp.GetResponseStream()))
-              {
-                logger.Info(String.Format("response body: {0} ", reader.ReadToEnd()));
-              }
-            }
-          }
+          logger.Info(string.Format("call api error:  {0} ", ex.Message));
           break;
         }
       }
@@ -67,12 +54,9 @@ namespace ApiSample
 
     private static void SaveResult(JArray jsonResult)
     {
-      using (StreamWriter writer = File.AppendText(outputFile))
-      {
-        writer.WriteLine(jsonResult.ToString());
-        writer.Flush();
-      }
+      using StreamWriter writer = File.AppendText(outputFile);
+      writer.WriteLine(jsonResult.ToString());
+      writer.Flush();
     }
   }
-
 }

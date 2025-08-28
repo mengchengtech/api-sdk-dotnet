@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Text;
+using Microsoft.Extensions.Primitives;
 
 namespace MCTech.OpenApi.Sdk
 {
@@ -11,10 +12,10 @@ namespace MCTech.OpenApi.Sdk
     private readonly Uri _requestUri;
     private readonly string _method;
     private readonly string _contentType;
-    private readonly DateTime _date;
+    private readonly DateTimeOffset _date;
     //private readonly string _contentMd5;
 
-    public SignatureOption(Uri requestUri, string method, string contentType, DateTime date)
+    public SignatureOption(Uri requestUri, HttpMethod method, string contentType, DateTimeOffset date)
     {
       if (method == HttpMethod.Post || method == HttpMethod.Put || method == HttpMethod.Patch)
       {
@@ -25,11 +26,11 @@ namespace MCTech.OpenApi.Sdk
       }
 
       this._requestUri = requestUri;
-      this._method = method;
+      this._method = method.Method;
       this._contentType = contentType;
       //this._contentMd5 = "";
       this._date = date;
-      this.Headers = new NameValueCollection();
+      this.Headers = new Dictionary<string, StringValues>();
     }
 
     /// <summary>
@@ -63,7 +64,7 @@ namespace MCTech.OpenApi.Sdk
     /// <summary>
     /// 获取或设置REST调用签名中的url路径信息
     /// </summary>
-    public Uri resourceUri
+    public Uri ResourceUri
     {
       get { return this._requestUri; }
     }
@@ -71,7 +72,7 @@ namespace MCTech.OpenApi.Sdk
     /// <summary>
     /// 发出请求的客户端时间
     /// </summary>
-    public DateTime Date
+    public DateTimeOffset Date
     {
       get { return _date; }
     }
@@ -79,6 +80,6 @@ namespace MCTech.OpenApi.Sdk
     /// <summary>
     /// 自定义的headers头
     /// </summary>
-    public NameValueCollection Headers { get; set; }
+    public Dictionary<string, StringValues> Headers { get; set; }
   }
 }
