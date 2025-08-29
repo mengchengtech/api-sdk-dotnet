@@ -1,62 +1,114 @@
-﻿using log4net;
+﻿using System;
+using System.Text;
+using System.Collections.Generic;
+using System.Collections.Specialized;
+
+using log4net;
 using MCTech.OpenApi.Sdk;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace ApiSample
 {
   class Program
   {
-    private const string ACCESS_ID = "YOUR_ACCESS_ID";
-    private const string SECRET_KEY = "YOUR_SECRET_KEY";
-    private const string BASE_URL = "https://api.mctech.vip";
+    private static readonly ILog logger = LogManager.GetLogger("logger");
+    private readonly Config _config;
+    private readonly OpenApiClient _client;
 
-    private static string outputFile = "result.txt";
-    private static ILog logger = LogManager.GetLogger("logger");
+    private Program()
+    {
+      this._config = new Config();
+      this._client = new OpenApiClient(this._config.BaseUrl, this._config.AccessId, this._config.SecretKey);
+    }
 
     static void Main(string[] args)
     {
-      OpenApiClient client = new OpenApiClient(BASE_URL, ACCESS_ID, SECRET_KEY);
-      string url = "/v2/biz-data";
-      int pageSize = 500;
-      string body = "{{\"tableName\": \"projectRecordProgressQuantity\", \"offset\": {0}, \"limit\": {1} }}";
-      int offset = 0;
-      while (true)
+      Program app = new Program();
+      app.TestGetByHeader();
+      app.TestGetByQuery();
+      app.TestPostByHeader();
+    }
+    private void TestGetByHeader()
+    {
+      RequestOption option = RequestOption.NewBuilder()
+              .AddQuery("integratedProjectId", this._config.IntegrationId)
+              .AddHeader(new Dictionary<string, object> {
+                    { "X-iwop-before", "wq666" },
+                    { "x-iwop-integration-id", this._config.IntegrationId},
+                    { "x-IWOP-after", "wq666"}
+              })
+              .Build();
+      try
       {
-        try
-        {
-          using RequestResult result = client.Post(url, string.Format(body, offset, pageSize));
-          JArray jsonResult = (JArray)result.GetJsonObject(typeof(JArray))!;
-          SaveResult(jsonResult);
-          logger.Info(string.Format("{0} records received", jsonResult.Count));
-          offset += jsonResult.Count;
-          if (jsonResult.Count < pageSize)
-          {
-            break;
-          }
-        }
-        catch (Exception ex)
-        {
-          logger.Info(string.Format("call api error:  {0} ", ex.Message));
-          break;
-        }
+        using RequestResult result = this._client.Get(this._config.ApiPath, option);
+        Console.WriteLine(result.GetString());
       }
-      logger.Info(string.Format("totally received {0} records, saved to {1}", offset, outputFile));
+      catch (OpenApiClientException e)
+      {
+        logger.Error(e.Message, e);
+      }
+      catch (OpenApiResponseException e)
+      {
+        logger.Error(e.Message, e);
+        ApiGatewayErrorData error = e.Error;
+        // TODO: 处理api网关返回的异常
+        logger.Error(JsonConvert.SerializeObject(error));
+      }
     }
 
-    private static void SaveResult(JArray jsonResult)
+    private void TestGetByQuery()
     {
-      using StreamWriter writer = File.AppendText(outputFile);
-      writer.WriteLine(jsonResult.ToString());
-      writer.Flush();
+      RequestOption option = RequestOption.NewBuilder()
+              .SignedBy(new SignedByQuery(new QuerySignatureParams(3600)))
+              .AddQuery("integratedProjectId", this._config.IntegrationId)
+              .AddQuery(new Dictionary<string, object> {
+                    { "X-iwop-before", "wq666" },
+                    { "x-iwop-integration-id", this._config.IntegrationId},
+                    { "x-IWOP-after", "wq666"}
+              })
+                .Build();
+      try
+      {
+        using RequestResult result = this._client.Get(this._config.ApiPath, option);
+        Console.WriteLine(result.GetString());
+      }
+      catch (OpenApiClientException e)
+      {
+        logger.Error(e.Message, e);
+      }
+      catch (OpenApiResponseException e)
+      {
+        logger.Error(e.Message, e);
+        ApiGatewayErrorData error = e.Error;
+        // TODO: 处理api网关返回的异常
+        logger.Error(JsonConvert.SerializeObject(error));
+      }
+    }
+
+    private void TestPostByHeader()
+    {
+      RequestOption option = RequestOption.NewBuilder()
+              .AddQuery("integratedProjectId", this._config.IntegrationId)
+              .AddHeader("x-iwop-integration-id", this._config.IntegrationId)
+              .ContentType("application/xml")
+              .Body("<body></body>")
+              .Build();
+      try
+      {
+        using RequestResult result = this._client.Post(this._config.ApiPath, option);
+        Console.WriteLine(result.GetString());
+      }
+      catch (OpenApiClientException e)
+      {
+        logger.Error(e.Message, e);
+      }
+      catch (OpenApiResponseException e)
+      {
+        logger.Error(e.Message, e);
+        ApiGatewayErrorData error = e.Error;
+        // TODO: 处理api网关返回的异常
+        logger.Error(JsonConvert.SerializeObject(error));
+      }
     }
   }
 }

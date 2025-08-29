@@ -1,20 +1,18 @@
 ﻿using System;
+using System.Text;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.IO;
-using System.Linq;
 using System.Net;
-using System.Net.Http.Json;
-using System.Security.Cryptography;
-using System.Text;
-using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.WebUtilities;
 
 namespace MCTech.OpenApi.Sdk
 {
   public class OpenApiClient
   {
+    private const string CONTENT_TYPE_VALUE = "application/json; charset=UTF-8";
+    private const string ACCEPT_VALUE = "application/json, application/xml, */*";
+
     private readonly string _accessId;
     private readonly string _secretKey;
     private readonly Uri _baseUri;
@@ -43,93 +41,154 @@ namespace MCTech.OpenApi.Sdk
       {
         PooledConnectionLifetime = TimeSpan.FromMinutes(5),   // 连接存活时间
         PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2), // 空闲连接超时
-        AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
+        AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
       });
-      this._client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
-      this._client.DefaultRequestHeaders.AcceptLanguage.Add(new StringWithQualityHeaderValue("zh-CN"));
+      this._client.DefaultRequestHeaders.Accept.ParseAdd(ACCEPT_VALUE);
+      this._client.DefaultRequestHeaders.AcceptLanguage.ParseAdd("zh-CN");
     }
 
-    public RequestResult Get(string pathAndQuery)
+    public RequestResult Get(string apiPath, RequestOption option)
     {
-      var result = Request(pathAndQuery, null, HttpMethod.Get);
-      return result.Result;
+      return Request(HttpMethod.Get, apiPath, option);
     }
 
-    public RequestResult Delete(string pathAndQuery)
+    public async Task<RequestResult> GetAsync(string apiPath, RequestOption option)
     {
-      var result = Request(pathAndQuery, null, HttpMethod.Delete);
-      return result.Result;
+      return await this.RequestAsync(HttpMethod.Get, apiPath, option);
     }
 
-    public RequestResult Post(string pathAndQuery, string body)
+    public RequestResult Delete(string apiPath, RequestOption option)
     {
-      byte[] data = Encoding.UTF8.GetBytes(body);
-      var result = Request(pathAndQuery, new MemoryStream(data), HttpMethod.Post);
-      return result.Result;
+      return Request(HttpMethod.Delete, apiPath, option);
     }
 
-    public RequestResult Post(string pathAndQuery, Stream streamBody)
+    public async Task<RequestResult> DeleteAsync(string apiPath, RequestOption option)
     {
-      var result = Request(pathAndQuery, streamBody, HttpMethod.Post);
-      return result.Result;
+      return await this.RequestAsync(HttpMethod.Delete, apiPath, option);
     }
 
-    public RequestResult Put(string pathAndQuery, string body)
+    public RequestResult Post(string apiPath, RequestOption option)
     {
-      byte[] data = Encoding.UTF8.GetBytes(body);
-      var result = Request(pathAndQuery, new MemoryStream(data), HttpMethod.Put);
-      return result.Result;
+      return Request(HttpMethod.Post, apiPath, option);
     }
 
-    public RequestResult Put(string pathAndQuery, Stream streamBody)
+    public async Task<RequestResult> PostAsync(string apiPath, RequestOption option)
     {
-      var result = Request(pathAndQuery, streamBody, HttpMethod.Put);
-      return result.Result;
+      return await this.RequestAsync(HttpMethod.Post, apiPath, option);
     }
 
-    public RequestResult Patch(string pathAndQuery, string body)
+    public RequestResult Put(string apiPath, RequestOption option)
     {
-      byte[] data = Encoding.UTF8.GetBytes(body);
-      var result = Request(pathAndQuery, new MemoryStream(data), HttpMethod.Patch);
-      return result.Result;
+      return Request(HttpMethod.Put, apiPath, option);
     }
 
-    public RequestResult Patch(string pathAndQuery, Stream streamBody)
+    public async Task<RequestResult> PutAsync(string apiPath, RequestOption option)
     {
-      var result = Request(pathAndQuery, streamBody, HttpMethod.Patch);
-      return result.Result;
+      return await this.RequestAsync(HttpMethod.Put, apiPath, option);
     }
 
-    private async Task<RequestResult> Request(string pathAndQuery, Stream? streamBody, HttpMethod method)
+    public RequestResult Patch(string apiPath, RequestOption option)
     {
-      HttpRequestMessage req = CreateRequestMessage(pathAndQuery, method);
-      if (streamBody != null)
+      return Request(HttpMethod.Patch, apiPath, option);
+    }
+
+    public async Task<RequestResult> PatchAsync(string apiPath, RequestOption option)
+    {
+      return await this.RequestAsync(HttpMethod.Patch, apiPath, option);
+    }
+
+    public RequestResult Request(HttpMethod method, string apiPath, RequestOption option)
+    {
+      var result = this.RequestAsync(method, apiPath, option);
+      return result.GetAwaiter().GetResult();
+    }
+
+    public async Task<RequestResult> RequestAsync(HttpMethod method, string apiPath, RequestOption option)
+    {
+      HttpRequestMessage req = new HttpRequestMessage(method, (string?)null);
+      HttpContent? entity = option.Entity;
+      if (entity != null)
       {
-        req.Content = new StreamContent(streamBody);
+        req.Content = entity;
+        string? contentType = option.ContentType;
+        if (string.IsNullOrEmpty(contentType))
+        {
+          contentType = CONTENT_TYPE_VALUE;
+        }
+        req.Content.Headers.ContentType = new MediaTypeHeaderValue(contentType!);
       }
-      HttpResponseMessage response = await this._client.SendAsync(req);
+      Uri apiUri = new Uri(this._baseUri, apiPath);
+      if (option.Query.Count > 0)
+      {
+        UriBuilder urlBuilder = new UriBuilder(apiUri);
+        urlBuilder.Query = QueryHelpers.AddQueryString(urlBuilder.Query, option.Query);
+        apiUri = urlBuilder.Uri;
+      }
+      req.RequestUri = apiUri;
+      if (option.Headers.Count > 0)
+      {
+        foreach (var (name, value) in option.Headers)
+        {
+          req.Headers.Remove(name);
+          req.Headers.Add(name, value);
+        }
+      }
+
+      this.MakeSignature(req, option.SignedBy);
+
+      int? timeout = option.Timeout;
+      HttpResponseMessage response;
+      if (timeout != null && timeout > 0)
+      {
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds((int)timeout));
+        response = await this._client.SendAsync(req, cts.Token);
+      }
+      else
+      {
+        response = await this._client.SendAsync(req);
+      }
+
+      if (!response.IsSuccessStatusCode)
+      {
+        Stream xmlContent = response.Content.ReadAsStream();
+        ApiGatewayErrorData error = Utility.ResolveError(xmlContent);
+        throw new OpenApiResponseException(error.Message, response.StatusCode, error);
+      }
       return new RequestResult(response);
     }
 
-    private HttpRequestMessage CreateRequestMessage(string pathAndQuery, HttpMethod method)
+    private void MakeSignature(HttpRequestMessage request, ISignedBy? signedBy)
     {
-      Uri apiUri = new Uri(this._baseUri, pathAndQuery);
+      var contentType = request.Content?.Headers.ContentType;
+      SignatureOption option = new SignatureOption(
+        this._accessId,
+        this._secretKey,
+        request.RequestUri!,
+        request.Method,
+        contentType?.ToString(),
+        request.Headers
+      );
 
-      HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, apiUri);
-      request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-      var now = DateTimeOffset.Now;
-      request.Headers.Date = now;
-      var contentType = "application/json";
-      request.Headers.Add(HttpRequestHeader.ContentType.ToString(), contentType);
-      request.Method = method;
-      SignatureOption option = new SignatureOption(request.RequestUri!, method, contentType, now);
-      string canonicalString = Utility.BuildCanonicalString(option);
-      HMACSHA1 hmac = new HMACSHA1(Encoding.UTF8.GetBytes(_secretKey));
-      byte[] byteText = hmac.ComputeHash(Encoding.UTF8.GetBytes(canonicalString));
-      string signature = Convert.ToBase64String(byteText);
-      request.Headers.Add(HttpRequestHeader.Authorization.ToString(), "IWOP " + this._accessId + ":" + signature);
+      if (signedBy == null)
+      {
+        signedBy = new SignedByHeader();
+      }
+      SignedInfo signedInfo = Utility.GenerateSignature(signedBy, option);
+      if (signedInfo.Headers != null)
+      {
+        foreach (var (key, value) in signedInfo.Headers!)
+        {
+          request.Headers.Remove(key);
+          request.Headers.Add(key, value);
+        }
+      }
 
-      return request;
+      if (signedInfo.Query != null)
+      {
+        UriBuilder urlBuilder = new UriBuilder(request.RequestUri!);
+        urlBuilder.Query = QueryHelpers.AddQueryString(urlBuilder.Query, signedInfo.Query!);
+        request.RequestUri = urlBuilder.Uri;
+      }
     }
   }
 }

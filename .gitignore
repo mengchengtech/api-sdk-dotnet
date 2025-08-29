@@ -2,3 +2,5 @@
 *.user
 bin
 obj
+**/config.json
+.vscode

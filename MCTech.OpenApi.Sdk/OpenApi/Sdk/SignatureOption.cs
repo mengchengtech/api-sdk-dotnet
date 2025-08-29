@@ -1,85 +1,40 @@
 ﻿using System;
+using System.Text;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Linq;
-using System.Text;
-using Microsoft.Extensions.Primitives;
+using System.Net.Http.Headers;
 
 namespace MCTech.OpenApi.Sdk
 {
   internal class SignatureOption
   {
-    private readonly Uri _requestUri;
-    private readonly string _method;
-    private readonly string _contentType;
-    private readonly DateTimeOffset _date;
-    //private readonly string _contentMd5;
-
-    public SignatureOption(Uri requestUri, HttpMethod method, string contentType, DateTimeOffset date)
-    {
-      if (method == HttpMethod.Post || method == HttpMethod.Put || method == HttpMethod.Patch)
-      {
-        if (string.IsNullOrWhiteSpace(contentType))
-        {
-          throw new OpenApiClientException("http请求缺少'content-type'头。请求方式为[" + method + "]时，需要在RpcInvoker的headers属性上设置'content-type'");
-        }
-      }
-
-      this._requestUri = requestUri;
-      this._method = method.Method;
-      this._contentType = contentType;
-      //this._contentMd5 = "";
-      this._date = date;
-      this.Headers = new Dictionary<string, StringValues>();
-    }
-
-    /// <summary>
-    /// 获取或设置设置REST调用签名中的method信息
-    /// </summary>
-    public string Method
-    {
-      get { return this._method; }
-    }
-
-    /// <summary>
-    /// 获取或设置REST调用中的content-type头
-    /// </summary>
-    public string ContentType
-    {
-      get
-      {
-        if (string.IsNullOrWhiteSpace(_contentType))
-        {
-          return string.Empty;
-        }
-        return _contentType;
-      }
-    }
-
-    //public string ContentMd5 
-    //{ 
-    //    get { return this._contentMd5; } 
-    //}
-
+    public string AccessId { get; private set; }
+    public string Secret { get; private set; }
     /// <summary>
     /// 获取或设置REST调用签名中的url路径信息
     /// </summary>
-    public Uri ResourceUri
-    {
-      get { return this._requestUri; }
-    }
-
+    public Uri RequestUri { get; private set; }
     /// <summary>
-    /// 发出请求的客户端时间
+    /// 获取或设置设置REST调用签名中的method信息
     /// </summary>
-    public DateTimeOffset Date
-    {
-      get { return _date; }
-    }
-
+    public HttpMethod Method { get; private set; }
     /// <summary>
-    /// 自定义的headers头
+    /// 获取或设置REST调用中的content-type头
     /// </summary>
-    public Dictionary<string, StringValues> Headers { get; set; }
+    public string? ContentType { get; private set; }
+    /// <summary>
+    /// headers头
+    /// </summary>
+    public HttpRequestHeaders Headers { get; private set; }
+
+    public SignatureOption(string accessId, string secret, Uri requestUri, HttpMethod method, string? contentType, HttpRequestHeaders headers)
+    {
+      this.AccessId = accessId;
+      this.Secret = secret;
+      this.RequestUri = requestUri;
+      this.Method = method;
+      this.ContentType = contentType;
+      this.Headers = headers;
+    }
   }
 }
