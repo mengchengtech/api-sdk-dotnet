@@ -1,8 +1,8 @@
 ﻿using System;
+using System.Text;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Collections.Specialized;
 
 namespace MCTech.OpenApi.Sdk
 {
@@ -10,6 +10,7 @@ namespace MCTech.OpenApi.Sdk
   {
     private const string PROP_CODE = "Code";
     private const string PROP_MESSAGE = "Message";
+    private const string PROP_CLIENT_IP = "ClientIP";
     private const string PROP_STRING_TO_SIGN_BYTES = "StringToSignBytes";
     private const string PROP_SIGNATURE_PROVIDED = "SignatureProvided";
     private const string PROP_STRING_TO_SIGN = "StringToSign";
@@ -32,6 +33,11 @@ namespace MCTech.OpenApi.Sdk
       get { return (string)this._map[PROP_MESSAGE]!; }
     }
 
+    public string ClientIP
+    {
+      get { return (string)this._map[PROP_CLIENT_IP]!; }
+    }
+
     public string? StringToSignBytes
     {
       get { return (string?)this._map[PROP_STRING_TO_SIGN_BYTES]; }
@@ -52,7 +58,7 @@ namespace MCTech.OpenApi.Sdk
       get { return (string?)this._map[PROP_ACCESS_KEY_ID]; }
     }
 
-    public string? GetProperty(String name)
+    public string? GetProperty(string name)
     {
       return (string?)this._map[name];
     }
