@@ -1,4 +1,4 @@
-
+﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
@@ -6,6 +6,8 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MCTech.OpenApi.Sdk", "MCTech.OpenApi.Sdk\MCTech.OpenApi.Sdk.csproj", "{6F40C9A8-729D-472C-B5DC-F425D3B0A1AC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApiSample", "ApiSample\ApiSample.csproj", "{07C16079-990C-4BED-8C55-C54B6D35356B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MCTech.OpenApi.Sdk.NUnitTests", "MCTech.OpenApi.Sdk.NUnitTests\MCTech.OpenApi.Sdk.NUnitTests.csproj", "{708416F2-CBB3-40FC-9925-7F6745D74BC3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -24,5 +26,9 @@ Global
 		{07C16079-990C-4BED-8C55-C54B6D35356B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{07C16079-990C-4BED-8C55-C54B6D35356B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{07C16079-990C-4BED-8C55-C54B6D35356B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{708416F2-CBB3-40FC-9925-7F6745D74BC3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{708416F2-CBB3-40FC-9925-7F6745D74BC3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{708416F2-CBB3-40FC-9925-7F6745D74BC3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{708416F2-CBB3-40FC-9925-7F6745D74BC3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

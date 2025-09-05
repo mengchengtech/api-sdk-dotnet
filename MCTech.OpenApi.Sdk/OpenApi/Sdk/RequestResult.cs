@@ -160,7 +160,7 @@ namespace MCTech.OpenApi.Sdk
     }
 
     /// <summary>
-    /// 获取返回结果的Stream
+    /// 获取返回结果的StreamReader
     /// </summary>
     /// <returns></returns>
     public StreamReader OpenRead()

@@ -6,7 +6,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Net;
 
-namespace ApiSample
+namespace MCTech.OpenApi.Sdk.NUnitTests
 {
   internal class Config
   {
